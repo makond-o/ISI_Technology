@@ -10,7 +10,7 @@ import time
 @pytest.mark.usefixtures('setup')
 class TestAlert:
 
-    def test_add_alert_with_valid_data(self):
+    def test_add_alert_with_positive_temperature_values(self):
         login_page = LoginPage(self.driver)
         home_page = HomePage(self.driver)
         alerts_page = AlertsPage(self.driver)
@@ -31,7 +31,27 @@ class TestAlert:
                                                  expected_temperature_to, expected_send_sms_value, expected_send_email_value)
         alerts_page.delete_last_alert()
 
-    def test_add_alert_with_empty_name(self):
+    def test_add_alert_with_negative_temperature_values(self):
+        login_page = LoginPage(self.driver)
+        home_page = HomePage(self.driver)
+        alerts_page = AlertsPage(self.driver)
+        login_page.login(TestData.LOGIN, TestData.PASSWORD)
+        home_page.open_alerts_page()
+        alerts_page.go_to_alerts_list_last_page()
+        last_alert_id = alerts_page.get_last_alert_id()
+        expected_alert_name = "test_name"
+        expected_temperature_from = "-100"
+        expected_temperature_to = "-50"
+        expected_send_sms_value = "Yes"
+        expected_send_email_value = "Yes"
+        alerts_page.add_alert_with_office_location(expected_alert_name, expected_temperature_from,
+                                                   expected_temperature_to, is_to_send_sms=True,  is_to_send_email=True)
+        time.sleep(1)
+        alerts_page.go_to_alerts_list_last_page()
+        alerts_page.verify_last_alert_properties(last_alert_id, expected_alert_name, expected_temperature_from,
+                                                 expected_temperature_to, expected_send_sms_value, expected_send_email_value)
+
+    def test_alert_with_empty_name_not_added(self):
         login_page = LoginPage(self.driver)
         home_page = HomePage(self.driver)
         alerts_page = AlertsPage(self.driver)
@@ -39,12 +59,12 @@ class TestAlert:
         home_page.open_alerts_page()
         alerts_page.go_to_alerts_list_last_page()
         expected_alert_id = alerts_page.get_last_alert_id()
-        alerts_page.add_alert_with_office_location(temperature_from=10, temperature_to=70)
+        alerts_page.add_alert_with_office_location(temperature_from="10", temperature_to="70")
         last_alert_id = alerts_page.get_last_alert_id()
         assert last_alert_id == expected_alert_id, "Alert with empty name is added"
         WarningObject(self.driver).verify_visible()
 
-    def test_add_alert_with_empty_temperature_from(self):
+    def test_alert_with_empty_temperature_from_not_added(self):
         login_page = LoginPage(self.driver)
         home_page = HomePage(self.driver)
         alerts_page = AlertsPage(self.driver)
@@ -52,12 +72,12 @@ class TestAlert:
         home_page.open_alerts_page()
         alerts_page.go_to_alerts_list_last_page()
         expected_alert_id = alerts_page.get_last_alert_id()
-        alerts_page.add_alert_with_office_location(name="testname", temperature_to=70)
+        alerts_page.add_alert_with_office_location(name="testname", temperature_to="70")
         last_alert_id = alerts_page.get_last_alert_id()
         assert last_alert_id == expected_alert_id, "Alert with empty temperature_from field is added"
         WarningObject(self.driver).verify_visible()
 
-    def test_add_alert_with_empty_temperature_to(self):
+    def test_alert_with_empty_temperature_to_not_added(self):
         login_page = LoginPage(self.driver)
         home_page = HomePage(self.driver)
         alerts_page = AlertsPage(self.driver)
@@ -65,12 +85,51 @@ class TestAlert:
         home_page.open_alerts_page()
         alerts_page.go_to_alerts_list_last_page()
         expected_alert_id = alerts_page.get_last_alert_id()
-        alerts_page.add_alert_with_office_location(name="testname", temperature_from=70)
+        alerts_page.add_alert_with_office_location(name="testname", temperature_from="70")
         last_alert_id = alerts_page.get_last_alert_id()
         assert last_alert_id == expected_alert_id, "Alert with empty temperature_to field is added"
         WarningObject(self.driver).verify_visible()
 
-    def test_add_alert_with_empty_location(self):
+    def test_alert_with_alphabetic_value_in_temperature_to_not_added(self):
+        login_page = LoginPage(self.driver)
+        home_page = HomePage(self.driver)
+        alerts_page = AlertsPage(self.driver)
+        login_page.login(TestData.LOGIN, TestData.PASSWORD)
+        home_page.open_alerts_page()
+        alerts_page.go_to_alerts_list_last_page()
+        expected_alert_id = alerts_page.get_last_alert_id()
+        alerts_page.add_alert_with_office_location(name="testname", temperature_from="twenty")
+        last_alert_id = alerts_page.get_last_alert_id()
+        assert last_alert_id == expected_alert_id, "Alert with alphabetic value in temperature_to field is added"
+        WarningObject(self.driver).verify_visible()
+
+    def test_alert_with_alphabetic_value_in_temperature_from_not_added(self):
+        login_page = LoginPage(self.driver)
+        home_page = HomePage(self.driver)
+        alerts_page = AlertsPage(self.driver)
+        login_page.login(TestData.LOGIN, TestData.PASSWORD)
+        home_page.open_alerts_page()
+        alerts_page.go_to_alerts_list_last_page()
+        expected_alert_id = alerts_page.get_last_alert_id()
+        alerts_page.add_alert_with_office_location(name="testname", temperature_from="five")
+        last_alert_id = alerts_page.get_last_alert_id()
+        assert last_alert_id == expected_alert_id, "Alert with alphabetic value in temperature_from field is added"
+        WarningObject(self.driver).verify_visible()
+
+    def test_alert_with_incorrect_temperature_range_not_added(self):
+        login_page = LoginPage(self.driver)
+        home_page = HomePage(self.driver)
+        alerts_page = AlertsPage(self.driver)
+        login_page.login(TestData.LOGIN, TestData.PASSWORD)
+        home_page.open_alerts_page()
+        alerts_page.go_to_alerts_list_last_page()
+        expected_alert_id = alerts_page.get_last_alert_id()
+        alerts_page.add_alert_with_office_location(name="testname", temperature_from="0", temperature_to="-20")
+        last_alert_id = alerts_page.get_last_alert_id()
+        assert last_alert_id == expected_alert_id, "Alert with incorrect temperature range is added"
+        WarningObject(self.driver).verify_visible()
+
+    def test_alert_with_empty_location_not_added(self):
         login_page = LoginPage(self.driver)
         home_page = HomePage(self.driver)
         alerts_page = AlertsPage(self.driver)
